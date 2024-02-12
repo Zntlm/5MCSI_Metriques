@@ -35,42 +35,9 @@ def mongraphique():
 def monhistogramme():
     return render_template("histogramme.html")
 
-#@app.route('/extract-minutes/<date_string>')
-#def extract_minutes(date_string):
-#       date_object = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ')
-#        minutes = date_object.minute
-#        return jsonify({'minutes': minutes})
-
-#from flask import Flask, render_template, jsonify
-#import requests
-#from datetime import datetime
-#import pandas as pd
-
-#app = Flask(__name__)
-
-@app.route('/commits/')
-def commits():
-    url = 'https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits'
-    response = requests.get(url)
-    commits_data = response.json()
-
-    # Création d'une DataFrame pour le traitement
-    data = {
-        'timestamp': [datetime.strptime(commit['commit']['author']['date'], '%Y-%m-%dT%H:%M:%SZ') for commit in commits_data]
-    }
-    df = pd.DataFrame(data)
-
-    # Grouper par minute et compter les commits
-    df.set_index('timestamp', inplace=True)
-    commits_per_minute = df.resample('T').size()
-
-    # Préparer les données pour le graphique
-    times = commits_per_minute.index.strftime('%Y-%m-%d %H:%M')
-    counts = commits_per_minute.values
-
-    # Renvoyer le template HTML avec les données pour le graphique
-    return render_template('commits.html', times=times, counts=counts)
-
+@app.route("/commits/")
+def moncommits():
+    return render_template('commits.html')
 
 
 if __name__ == "__main__":
