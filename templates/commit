@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Commits par minute</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="commitsChart"></canvas>
+    <script>
+        var ctx = document.getElementById('commitsChart').getContext('2d');
+        var times = {{ times|tojson }};
+        var counts = {{ counts|tojson }};
+        var commitsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: times,
+                datasets: [{
+                    label: 'Commits par minute',
+                    data: counts,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
