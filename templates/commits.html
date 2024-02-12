@@ -1,46 +1,64 @@
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Commits sur GitHub</title>
-  <!-- Chargement de la bibliothèque Google Charts -->
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  <script>
-    // Chargement de Google Charts et exécution de la fonction drawChart au chargement de la page
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawChart);
+  <head>
+    <title>Commit Activity</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    </head>
+    <body style="background-color: #DFF2FF; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;">
+    <div id="chart_div" style="background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);  width: 80vw; height: 65vh;"></div>
+ <body>
+    <div id="chart_div"></div>
+      <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
 
-    function drawChart() {
-      // Récupération des données des commits depuis l'API GitHub
-      fetch('https://api.github.com/repos/Zntlm/5MCSI_Metriques/commits')
-        .then(response => response.json())
-        .then(data => {
-          // Création d'un tableau pour stocker les données des commits
-          var commitsData = [['Date', 'Index']];
-          // Ajout de chaque date de commit au tableau de données
-          data.forEach((commit, index) => {
-            commitsData.push([commit.commit.author.date, index + 1]);
-          });
+      function drawChart() {
+        fetchData().then(commitData => {
+          const data = new google.visualization.DataTable();
+          data.addColumn('string', 'DateTime');
+          data.addColumn('number', 'Commits');
 
-          // Création d'un objet DataTable avec les données des commits
-          var dataTable = google.visualization.arrayToDataTable(commitsData);
+          data.addRows(commitData);
 
-          // Options du graphique
           var options = {
-            title: 'Dates des commits sur GitHub',
-            legend: { position: 'none' }
+            title: 'Commit Activity (Day and Hour)',
+            hAxis: {title: 'DateTime', slantedText: true, slantedTextAngle: 45},
+            vAxis: {
+              title: 'Commits',
+              minValue: 0, // Ensure the minimum value of y-axis is set to 0
+              viewWindow: {
+                min: 0 // Explicitly sets the minimum value of the vertical axis to 0
+              }
+            },
+            legend: 'none'
           };
 
-          // Création du graphique de type scatter chart dans l'élément avec l'ID 'chart_div'
-          var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
-          chart.draw(dataTable, options);
-        })
-        .catch(error => console.error('Erreur lors de la récupération des données des commits :', error));
-    }
-  </script>
-</head>
-<body>
-  <h1>Commits sur GitHub</h1>
-  <!-- Div où sera affiché le graphique -->
-  <div id="chart_div" style="width: 900px; height: 500px;"></div>
-</body>
+          var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+          chart.draw(data, options);
+        });
+      }
+
+      async function fetchData() {
+        const response = await fetch('https://api.github.com/repos/Zntlm/5MCSI_Metriques/commits');
+        const commits = await response.json();
+        const commitCountPerDateTime = {};
+
+        // Process commits to count per day and hour
+        commits.forEach(commit => {
+          const date = new Date(commit.commit.author.date);
+          const day = date.toISOString().split('T')[0]; // YYYY-MM-DD
+          const time = date.toISOString().split('T')[1].substring(0, 5); // HH:MM
+          const dateTimeStr = `${day} ${time}`;
+
+          if (commitCountPerDateTime[dateTimeStr]) {
+            commitCountPerDateTime[dateTimeStr] += 1;
+          } else {
+            commitCountPerDateTime[dateTimeStr] = 1;
+          }
+        });
+
+        // Convert to array format suitable for Google Charts
+        return Object.keys(commitCountPerDateTime).map(dateTime => [dateTime, commitCountPerDateTime[dateTime]]);
+      }
+    </script>
+ </body>
 </html>
